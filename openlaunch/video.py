@@ -22,7 +22,7 @@ import numpy as np
 class VideoReader:
     """Read a golf-swing video and expose frame-level access with timing info."""
 
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, real_fps: float | None = None) -> None:
         if not os.path.isfile(path):
             raise FileNotFoundError(f"Video not found: {path}")
         self._path = path
@@ -40,6 +40,12 @@ class VideoReader:
         # Slow-motion metadata (iPhone specific)
         self._slow_mo_factor: float = self._detect_slow_mo_factor()
         self._real_fps: float = self._fps * self._slow_mo_factor
+
+        # Override with user-specified real FPS (for baked slow-motion files
+        # where metadata reports 30fps but capture was 240fps+)
+        if real_fps is not None and real_fps > 0:
+            self._real_fps = real_fps
+            self._slow_mo_factor = self._fps / real_fps  # playback/capture ratio
 
     # ------------------------------------------------------------------
     # Properties

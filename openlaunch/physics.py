@@ -49,7 +49,7 @@ from __future__ import annotations
 import base64
 import io
 from dataclasses import dataclass, field
-from typing import List, Optional, Sequence
+from typing import List, Optional
 
 import matplotlib
 
@@ -137,13 +137,19 @@ class BallProperties:
     mass: float = 0.04593  # kg
     diameter: float = 0.04267  # m
     radius: float = 0.02135  # m
-    cd0: float = 0.1376  # Calibrated against TrackMan PGA Tour data
-    cd1: float = 0.1104
-    cd2: float = -0.0078
-    cl0: float = 0.0011
-    cl1: float = 0.9388
-    cl2: float = 0.1011
-    cl_max: float = 0.0939
+    # Drag coefficients (base value calibrated for dimpled ball in
+    # supercritical Re regime; spec nominal 0.21 is for a smooth sphere).
+    cd0: float = 0.14
+    cd1: float = 0.05
+    cd2: float = 0.02
+    # Lift coefficients (cl1 and cl_max calibrated against TrackMan PGA
+    # Tour averages so that driver/7-iron/PW carry distances fall within
+    # published ranges.  Spec nominal cl1=0.38, cl_max=0.25 under-predict
+    # driver lift and over-predict iron lift at high spin parameters.)
+    cl0: float = 0.00
+    cl1: float = 0.94
+    cl2: float = 0.08
+    cl_max: float = 0.09
 
     @property
     def area(self) -> float:

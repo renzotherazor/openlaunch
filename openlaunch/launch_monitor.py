@@ -149,10 +149,12 @@ class LaunchMonitor:
         video_path: str,
         club_length_inches: float = 45.75,
         camera_angle: str = "face_on",
+        real_fps: float | None = None,
     ) -> None:
         self._video_path = video_path
         self._club_length = club_length_inches
         self._camera_angle = camera_angle
+        self._real_fps = real_fps
 
     def analyze(
         self,
@@ -189,7 +191,7 @@ class LaunchMonitor:
 
         # ── 1. Load video ────────────────────────────────────────────
         try:
-            video = VideoReader(self._video_path)
+            video = VideoReader(self._video_path, real_fps=self._real_fps)
         except (FileNotFoundError, IOError) as exc:
             result._error = str(exc)  # type: ignore[attr-defined]
             return result

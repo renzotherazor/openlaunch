@@ -23,6 +23,7 @@ def cmd_analyze(args):
         video_path=args.video,
         club_length_inches=args.club_length,
         camera_angle=args.angle,
+        real_fps=args.real_fps,
     )
     result = monitor.analyze(
         impact_frame=args.impact_frame,
@@ -51,7 +52,30 @@ def cmd_analyze(args):
     if args.chart and result.trajectory_points:
         from openlaunch.physics import BallFlightSimulator
         sim = BallFlightSimulator()
-        sim.to_trajectory_chart(result.trajectory_points, filename=args.chart)
+        # trajectory_points may be a list of (x_m, z_m, t_s) tuples
+        # (from fallback path) or a proper TrajectoryResult
+        tp = result.trajectory_points
+        if hasattr(tp, 'points'):
+            sim.to_trajectory_chart(tp, filename=args.chart)
+        else:
+            # Convert list of tuples to a chart manually
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+            x_yards = [p[0] * 1.09361 for p in tp]
+            z_m = [p[1] for p in tp]
+            fig, ax = plt.subplots(figsize=(10, 5))
+            ax.plot(x_yards, z_m, color="#1f77b4", linewidth=2)
+            ax.set_xlabel("Distance (yards)")
+            ax.set_ylabel("Height (m)")
+            ax.set_title("Ball Flight Trajectory")
+            ax.set_ylim(bottom=0)
+            ax.grid(True, alpha=0.3)
+            if args.chart.endswith(".png"):
+                fig.savefig(args.chart, dpi=150, bbox_inches="tight")
+            else:
+                fig.savefig(args.chart, bbox_inches="tight")
+            plt.close(fig)
         print(f"\nTrajectory chart saved to: {args.chart}")
 
 
@@ -125,6 +149,10 @@ def main():
     p_analyze.add_argument("--chart", type=str, default=None,
                            help="Save trajectory chart to file (SVG or PNG)")
     p_analyze.add_argument("--json", action="store_true", help="Output as JSON")
+    p_analyze.add_argument("--real-fps", type=float, default=None,
+                           help="True capture FPS for baked slow-motion files "
+                                "(e.g. 240 for a 240fps clip exported at 30fps). "
+                                "Use when video metadata reports wrong fps.")
     p_analyze.set_defaults(func=cmd_analyze)
 
     # ── simulate ───────────────────────────────────────────────
