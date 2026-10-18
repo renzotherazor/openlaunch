@@ -87,6 +87,8 @@ print(f"{w}x{h} @ {fps}fps, {frames} frames, {frames/fps:.1f}s")
 ```
 If fps < 60, the automated ball tracking will be unreliable — proceed with manual analysis.
 
+**Baked slow-motion files:** Many high-speed videos (YouTube, Vimeo, stock footage) are exported at 30fps even though they were captured at 240fps+. The metadata says 30fps but every frame is a distinct 1/240s instant. Use `--real-fps 240` to tell the tool the true capture rate. Without this flag, all speed calculations will be 8x too low.
+
 #### 2. Frame Differencing (Find Swing Zone)
 Compute motion energy across all frames to narrow down where the swing happens:
 ```python
@@ -247,7 +249,17 @@ pip install opencv-python-headless mediapipe numpy scipy matplotlib
 
 ### Analyze a swing video
 ```bash
+# Standard analysis (240fps iPhone slo-mo — metadata is correct)
 openlaunch analyze swing.mov --club driver --club-length 45.75
+
+# Baked slow-motion file (240fps capture exported at 30fps — metadata lies)
+openlaunch analyze swing.mov --club driver --club-length 45.75 --real-fps 240
+
+# With trajectory chart
+openlaunch analyze swing.mov --club driver --chart trajectory.png
+
+# JSON output for agent consumption
+openlaunch analyze swing.mov --club driver --json
 ```
 
 ### Simulate ball flight from manual parameters
